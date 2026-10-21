@@ -66,7 +66,6 @@ python sol.py
 This approach is more expensive than Q1 because it repeats the dictionary
 attack for all accounts.
 
-### ث
 ### Execution time
 Execution time: 134.63 seconds
 
