@@ -40,9 +40,13 @@ targeted dictionary attack against one account.
 cd lab1/Lab1/Q1
 python sol.py
 ```
+### ث
 
 When the password is found, the script prints the username and password and
 calls the login checker.
+
+### Execution time
+Execution time: 10.57 seconds
 
 ## Q2: Attack All Users
 
