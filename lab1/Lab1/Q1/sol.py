@@ -1,5 +1,9 @@
 import hashlib
 import os
+import time
+
+start_time = time.perf_counter()
+
 usersHashedPWsfile = open("../.loginCheck", "r")
 users=[]
 hashed= {}
@@ -30,4 +34,6 @@ for password in passwordsList:
             print ('Login successful.\n' + user + ':' + password)
             os.system("python3 ../LoginTemplate.py " + user + " " + password)
             break
+
+print(f"Time taken: {time.perf_counter() - start_time:.2f} seconds")
 

@@ -1,8 +1,11 @@
 import hashlib
 import os
+import time
 import multiprocessing as mp
 import torch
 import torch.multiprocessing as mp
+
+start_time = time.perf_counter()
 
 usersHashedPWsfile = open("../.loginCheck", "r")
 users=[]
@@ -51,3 +54,5 @@ if __name__ == '__main__':
         print(f"found {num_cpus} CPU(s). Running on CPU...")
         with mp.Pool(processes=num_cpus) as pool:
             results = pool.map(check_password, users)
+
+    print(f"Time taken: {time.perf_counter() - start_time:.2f} seconds")
