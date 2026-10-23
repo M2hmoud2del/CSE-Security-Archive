@@ -32,7 +32,7 @@ for password in passwordsList:
 
         if (guess) == hashed[user]:
             print ('Login successful.\n' + user + ':' + password)
-            os.system("python3 ../LoginTemplate.py " + user + " " + password)
+            os.system("python ../LoginTemplate.py " + user + " " + password)
             break
 
 print(f"Time taken: {time.perf_counter() - start_time:.2f} seconds")
