@@ -17,9 +17,12 @@ for row in usersHashedPWsfile:
 
 usersHashedPWsfile.close()
 
-passwords = open("./PwnedPWfile", "r", encoding='utf-8', errors='ignore')
-passwordsList = passwords.read().splitlines()
-passwords.close()
+with open("./PwnedPWfile", "r", encoding="utf-8", errors="ignore") as passwords:
+    passwordsList = [
+        row.strip().split(",", 1)[1]
+        for row in passwords
+        if "," in row
+    ]
 
 def check_password(user):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -32,9 +35,9 @@ def check_password(user):
         if device.type == 'cuda':
             digest_tensor = torch.tensor(list(current_digest), dtype=torch.uint8, device=device)
             for _ in range(90000):
-                h = hashlib.sha256(bytes(digest_tensor.cpu().tolist()))
+                h = hashlib.sha256(bytes(digest_tensor.cpu().numpy()))
                 digest_tensor = torch.tensor(list(h.digest()), dtype=torch.uint8, device=device)
-            guess = hashlib.sha256(bytes(digest_tensor.cpu().tolist())).hexdigest()
+            guess = hashlib.sha256(bytes(digest_tensor.cpu().numpy())).hexdigest()
         else:
             for _ in range(90000):
                 current_digest = hashlib.sha256(current_digest).digest()
