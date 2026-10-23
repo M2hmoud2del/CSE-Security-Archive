@@ -1,66 +1,116 @@
 import hashlib
+import csv
 import os
 import time
-import multiprocessing as mp
-import torch
 
-start_time = time.perf_counter()
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-usersHashedPWsfile = open("../.loginCheck", "r")
-users = []
-hashed = {}
+PWNED_FILE = os.path.join(BASE_DIR, "PwnedPWfile")
+USERS_FILE = os.path.join(BASE_DIR, "users")
+LOGIN_FILE = os.path.join(BASE_DIR, "..", ".loginCheck")
+OUTPUT_FILE = os.path.join(BASE_DIR, "results.txt")
 
-for row in usersHashedPWsfile:
-    (user, hashedPW) = (row.strip('\n')).split(',')
-    hashed[user] = hashedPW
-    users.append(user)
 
-usersHashedPWsfile.close()
+def verify_login(username, password, login_hashes):
+    stored_hash = login_hashes.get(username)
 
-with open("./PwnedPWfile", "r", encoding="utf-8", errors="ignore") as passwords:
-    passwordsList = [
-        row.strip().split(",", 1)[1]
-        for row in passwords
-        if "," in row
-    ]
+    if stored_hash is None:
+        return False
 
-def check_password(user):
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    
-    for password in passwordsList:
-        hash_obj = hashlib.sha256()
-        hash_obj.update(bytes(str(user) + password, 'utf-8'))
-        current_digest = hash_obj.digest()
-        
-        if device.type == 'cuda':
-            digest_tensor = torch.tensor(list(current_digest), dtype=torch.uint8, device=device)
-            for _ in range(90000):
-                h = hashlib.sha256(bytes(digest_tensor.cpu().numpy()))
-                digest_tensor = torch.tensor(list(h.digest()), dtype=torch.uint8, device=device)
-            guess = hashlib.sha256(bytes(digest_tensor.cpu().numpy())).hexdigest()
-        else:
-            for _ in range(90000):
-                current_digest = hashlib.sha256(current_digest).digest()
-            guess = hashlib.sha256(current_digest).hexdigest()
+    h = hashlib.sha256()
+    h.update((username + password).encode("utf-8"))
 
-        if guess == hashed[user]:
-            print('Login successful.\n' + user + ':' + password)
-            os.system("python3 ../LoginTemplate.py " + user + " " + password)
+    for _ in range(90000):
+        h.update(h.digest())
+
+    return h.hexdigest() == stored_hash
+
+
+def main():
+    start_time = time.perf_counter()
+
+    # Read target users
+    with open(USERS_FILE, "r", encoding="utf-8") as f:
+        users = [line.strip() for line in f if line.strip()]
+
+    # Read login hashes
+    login_hashes = {}
+
+    with open(LOGIN_FILE, "r", encoding="utf-8") as f:
+        for line in f:
+            parts = line.strip().split(",", 1)
+
+            if len(parts) == 2:
+                login_hashes[parts[0]] = parts[1]
+
+    # Read exposed username/password pairs
+    leaked_entries = []
+
+    with open(PWNED_FILE, "r", encoding="utf-8", newline="") as f:
+        for row in csv.reader(f):
+            if len(row) >= 2:
+                leaked_user = row[0].strip()
+                password = row[1].strip()
+
+                if password:
+                    leaked_entries.append((leaked_user, password))
+
+    found = None
+    attempts = set()
+
+    # Phase 1: Try passwords associated with matching usernames first.
+    users_by_lower = {user.lower(): user for user in users}
+
+    for leaked_user, password in leaked_entries:
+        username = users_by_lower.get(leaked_user.lower())
+
+        if username is None:
+            continue
+
+        attempts.add((username, password))
+
+        if verify_login(username, password, login_hashes):
+            found = (username, password)
             break
 
-if __name__ == '__main__':
-    mp.set_start_method('spawn', force=True)
-    
-    num_gpus = torch.cuda.device_count()
-    
-    if num_gpus > 0:
-        print(f"found {num_gpus} GPU(s). Running on GPU(s)...")
-        with mp.Pool(processes=num_gpus) as pool:
-            results = pool.map(check_password, users)
-    else:
-        num_cpus = mp.cpu_count()
-        print(f"No GPUs found. Running on {num_cpus} CPU(s)...")
-        with mp.Pool(processes=num_cpus) as pool:
-            results = pool.map(check_password, users)
+    # Phase 2: If needed, test all leaked passwords against target users.
+    if found is None:
+        passwords = list(dict.fromkeys(
+            password for _, password in leaked_entries
+        ))
 
-    print(f"Time taken: {time.perf_counter() - start_time:.2f} seconds")
+        for password in passwords:
+            for username in users:
+                if (username, password) in attempts:
+                    continue
+
+                if verify_login(username, password, login_hashes):
+                    found = (username, password)
+                    break
+
+            if found is not None:
+                break
+
+    elapsed = time.perf_counter() - start_time
+
+    print("\n--- Q4 Results ---")
+
+    if found:
+        username, password = found
+
+        print(f"Username: {username}")
+        print(f"Password: {password}")
+        print("Verification: SUCCESS")
+
+        with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+            f.write(f"{username},{password}\n")
+
+        print(f"Results saved to: {OUTPUT_FILE}")
+    else:
+        print("No matching credentials found.")
+
+    print(f"Execution Time: {elapsed:.4f} seconds")
+
+
+if __name__ == "__main__":
+    main()
