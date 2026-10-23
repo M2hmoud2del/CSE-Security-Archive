@@ -91,20 +91,22 @@ Find an additional user's password using the larger `LeakedPWs100k` dictionary, 
 
 For each candidate password and target username, the script reproduces the hashing procedure used by the lab's login checker and compares the result against the corresponding stored hash in `.loginCheck`. The original login implementation starts with `SHA-256(username + password)` and then calls `h.update(h.digest())` 90,000 times before comparing the final digest.
 
-### Bonus: Multithreading
+### Bonus: Multiprocessing
 
-The Q3 Bonus uses Python's `ThreadPoolExecutor` to search multiple target users concurrently.
+The Q3 Bonus uses Python's `ProcessPoolExecutor` to perform the dictionary attack across multiple processes.
 
-- Threads work on separate target users while checking candidates from `LeakedPWs100k`.
-- When a matching result is returned to the main thread, the program prints the username and password and saves the result to `results.txt`.
-- The program attempts to verify the discovered credentials using the login checker supplied with the lab.
-- The execution time is measured and printed.
+- The password dictionary `LeakedPWs100k` is divided into smaller batches.
+- Multiple worker processes check password candidates against the target users' stored hashes concurrently.
+- Each candidate is tested using the same hashing algorithm as the lab's login script, including 90,000 repeated SHA-256 hash updates.
+- When a matching result is found, the program prints the username and password and saves the credentials to `results.txt`.
+- The program attempts to verify the recovered credentials using the login checker supplied with the lab.
+- The total execution time is measured and printed.
 
-**Performance note:** The recorded run took more than one hour. Multithreading was implemented for the Bonus, but it does not guarantee a speedup for CPU-bound Python workloads because of the Global Interpreter Lock (GIL). The actual runtime depends on the machine, target users, and implementation. Re-run the final script and update this value if you record a new measurement.
+**Performance note:** Multiprocessing allows CPU-bound tasks to run in separate processes, potentially taking advantage of multiple CPU cores. The actual speedup depends on the number of available cores, process-management overhead, and the workload.
 
-### Previously exposed credentials
+### Previously Exposed Credentials
 
-These results were found in the earlier questions and are excluded from the search for an additional user:
+These credentials were identified in earlier questions and are excluded from the search for an additional user.
 
 | Username | Password |
 |---|---|
@@ -118,9 +120,12 @@ cd lab1/Lab1/Q3
 python -u sol.py
 ```
 
-### Recorded execution time
+### Recorded Execution Time
 
 `More than one hour`
+
+*This is the previously recorded runtime. Run the final multiprocessing implementation to obtain an updated measurement if needed.*
+
 
 ---
 
