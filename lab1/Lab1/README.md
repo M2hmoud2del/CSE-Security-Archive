@@ -120,6 +120,124 @@ Mostafa:1234567890
 
 excution time:more than one hour
 
+## Q4: Attack Using an Exposed Password File
+
+### Goal
+Recover the password of an additional user by using the exposed passwords listed in `Q4/PwnedPWfile`.
+
+### Method
+Q4 uses the exposed password file to identify a password reused by another user.
+
+The script:
+
+1. Reads the exposed passwords from `PwnedPWfile`.
+2. Loads the user password hashes from `.loginCheck`.
+3. Tests the candidate passwords against the users using the hashing process implemented in `LoginTemplate.py`.
+4. Identifies the user whose password matches one of the exposed passwords.
+5. Verifies the recovered credentials using the login checker.
+
+This demonstrates the risk of password reuse when passwords are exposed in data breaches.
+
+### Run
+```bash
+cd lab1/Lab1/Q4
+python sol.py
+```
+
+### Results
+```text
+username :password
+[Add the recovered username and password]
+```
+
+### Execution time
+Execution time: [Add measured execution time]
+
+---
+
+## Q5: Attack Using Hashed Passwords and Two Random Digits
+
+### Goal
+Recover additional user credentials using the exposed hashed passwords in `Q5/HashedPWs`.
+
+Users are assumed to have selected a password from `Q5/LeakedPWs100k` and appended two random digits to it.
+
+### Method
+Q5 uses the exposed hashed password file to reduce the search space and identify possible password matches.
+
+The script:
+
+1. Reads the exposed hashes from `HashedPWs`.
+2. Loads the candidate passwords from `LeakedPWs100k`.
+3. Appends every possible two-digit combination (`00`–`99`) to each candidate password.
+4. Applies the required hashing process to the generated password candidates.
+5. Compares the calculated hashes with the target user hashes in `.loginCheck`.
+6. Reports the recovered credentials and verifies them using the login checker.
+
+Appending two random digits creates 100 possible variants for each dictionary password, increasing the search space compared with a basic dictionary attack.
+
+### Run
+```bash
+cd lab1/Lab1/Q5
+python sol.py
+```
+
+### Results
+```text
+username :password
+[Add the recovered username and password]
+```
+
+### Execution time
+Execution time: [Add measured execution time]
+
+---
+
+## Q6: Attack Using Salted Password Hashes
+
+### Goal
+Recover the passwords of additional users using the salted password hashes stored in `Q6/SaltedPWs`.
+
+Each target password is assumed to consist of a password from `Q6/LeakedPWs100k` followed by one random digit.
+
+### Method
+Q6 uses the salt associated with each user when testing password candidates.
+
+The script:
+
+1. Reads the usernames, salts, and salted hashes from `SaltedPWs`.
+2. Loads candidate passwords from `LeakedPWs100k`.
+3. Appends each possible digit (`0`–`9`) to every candidate password.
+4. Concatenates the user's salt with each generated password candidate.
+5. Calculates the hash using the hashing algorithm specified by the lab.
+6. Compares the calculated hash with the corresponding stored salted hash.
+7. Reports the recovered credentials when a match is found.
+
+Since each user has a different salt, password candidates must be tested using the appropriate salt for each account. Salting helps prevent identical passwords from producing identical stored hashes and makes precomputed hash attacks less effective.
+
+### Run
+```bash
+cd lab1/Lab1/Q6
+python sol.py
+```
+
+### Results
+```text
+username :password
+[Add the recovered username and password]
+```
+
+### Execution time
+Execution time: [Add measured execution time]
+
+---
+
+## Notes
+- Run each command from its corresponding question directory.
+- Ensure that the required password lists and hash files are available.
+- Use the exact hashing algorithm and input format specified by the lab.
+- Record the actual execution time and recovered credentials after running each solution.
+- These scripts are intended for the supplied lab files and an authorized educational environment only.
 
 ## Shared Hashing Process
 
@@ -143,6 +261,9 @@ when users choose weak passwords, even when key stretching is used.
 | Q1 | `Q1/sol.py` | `Q1/MostCommonPWs` | `Q1/users` |
 | Q2 | `Q2/sol.py` | `Q2/MostCommonPWs` | `Q2/users` |
 | Q3 | `Q3/sol.py` | `Q3/LeakedPWs100k` | `Q3/users` |
+| Q4 | `Q4/sol.py` | `Q4/PwnedPWfile` | `.loginCheck` |
+| Q5 | `Q5/sol.py` | `Q5/LeakedPWs100k` | `.loginCheck`, `Q5/HashedPWs` |
+| Q6 | `Q6/sol.py` | `Q6/LeakedPWs100k` | `Q6/SaltedPWs` |
 
 These scripts are intended for the supplied lab files and an authorized
 educational environment only.
