@@ -1,0 +1,1 @@
+# Q6 has no sol.py or third-party Python dependencies.
