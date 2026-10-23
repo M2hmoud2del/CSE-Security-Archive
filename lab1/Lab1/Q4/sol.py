@@ -32,9 +32,9 @@ def check_password(user):
         if device.type == 'cuda':
             digest_tensor = torch.tensor(list(current_digest), dtype=torch.uint8, device=device)
             for _ in range(90000):
-                h = hashlib.sha256(bytes(digest_tensor.cpu().numpy()))
+                h = hashlib.sha256(bytes(digest_tensor.cpu().tolist()))
                 digest_tensor = torch.tensor(list(h.digest()), dtype=torch.uint8, device=device)
-            guess = hashlib.sha256(bytes(digest_tensor.cpu().numpy())).hexdigest()
+            guess = hashlib.sha256(bytes(digest_tensor.cpu().tolist())).hexdigest()
         else:
             for _ in range(90000):
                 current_digest = hashlib.sha256(current_digest).digest()
