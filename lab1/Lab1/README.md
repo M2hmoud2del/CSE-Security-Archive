@@ -45,8 +45,11 @@ python sol.py
 When the password is found, the script prints the username and password and
 calls the login checker.
 
+### username :password
+Magdy:password
+
 ### Execution time
-Execution time: 10.57 seconds
+Execution time: 3.72 seconds
 
 ## Q2: Attack All Users
 
