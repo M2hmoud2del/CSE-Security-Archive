@@ -1,38 +1,36 @@
 # Lab 1: Password Cracking Solutions
 
-This directory contains Python solutions for Questions 1-3 of Lab 1. The
-solutions demonstrate how password hashing, dictionary attacks, salting, and
-key stretching affect the cost of password guessing.
+This repository contains Python solutions for Questions 1–6 of Lab 1. The exercises demonstrate dictionary attacks, password reuse, exposed password hashes, salting, and the effect of repeated hashing on password-guessing cost. The Q3 solution also implements the Bonus using multithreading.
+
+> **Scope:** These scripts are intended only for the supplied lab files and an authorized educational environment.
 
 ## Requirements
 
 - Python 3
-- The shared `.loginCheck` file in this directory
-- The password lists included in each question directory
-- PyTorch for Q3 (`pip install torch`)
+- The shared `.loginCheck` file in the `Lab1` directory
+- The question-specific password lists, user lists, and exposed password/hash files
+- The lab's login checker (`LoginTemplate.py` or the supplied compiled login script), where required by the solution
 
-Run every command from the corresponding question directory. The programs
-read `../.loginCheck` and invoke `../LoginTemplate.py` after finding a valid
-password.
+Run each command from its corresponding question directory. The exact files read and verification steps depend on the question. Q3's Bonus uses Python's built-in `concurrent.futures.ThreadPoolExecutor`; PyTorch is not required for the multithreaded version described here.
+
+---
 
 ## Q1: Attack One User
 
 ### Goal
 
-Recover the password for a single user using the `MostCommonPWs` dictionary.
-The script currently targets the user `Magdy`.
+Recover the password for the user `Magdy` using the `MostCommonPWs` dictionary.
 
 ### Method
 
 For each candidate password, the script:
 
 1. Concatenates the username and candidate password.
-2. Calculates a SHA-256 digest.
-3. Re-hashes the digest 90,000 times.
-4. Compares the final hexadecimal digest with the value in `.loginCheck`.
+2. Initializes a SHA-256 hash with that value.
+3. Performs the lab's 90,000 repeated hash-update operations.
+4. Compares the final digest with the user's stored value in `.loginCheck`.
 
-This reproduces the hash construction used by `LoginTemplate.py` and shows a
-targeted dictionary attack against one account.
+This is a targeted dictionary attack against one account.
 
 ### Run
 
@@ -40,28 +38,28 @@ targeted dictionary attack against one account.
 cd lab1/Lab1/Q1
 python sol.py
 ```
-### ث
 
-When the password is found, the script prints the username and password and
-calls the login checker.
+### Result
 
-### username :password
-Magdy:password
+| Username | Password |
+|---|---|
+| Magdy | `password` |
 
-### Execution time
-Execution time: 3.72 seconds
+### Recorded execution time
+
+`3.72 seconds`
+
+---
 
 ## Q2: Attack All Users
 
 ### Goal
 
-Recover passwords for every user using the `MostCommonPWs` dictionary.
+Recover passwords for users in `.loginCheck` using the `MostCommonPWs` dictionary.
 
 ### Method
 
-Q2 uses the same hashing and comparison process as Q1, but loops through every
-user listed in `.loginCheck`. For each user, it tries every candidate in
-`MostCommonPWs` and performs the 90,000 additional SHA-256 iterations.
+Q2 applies the same hashing and comparison process as Q1 to multiple accounts. For each user, it tests the candidate passwords and compares the results against the stored hash.
 
 ### Run
 
@@ -70,201 +68,204 @@ cd lab1/Lab1/Q2
 python sol.py
 ```
 
-This approach is more expensive than Q1 because it repeats the dictionary
-attack for all accounts.
+### Results
 
-### username :password
-Magdy:password
+| Username | Password |
+|---|---|
+| Magdy | `password` |
+| Mostafa | `1234567890` |
 
-Mostafa:1234567890
+### Recorded execution time
 
-### Execution time
+`37.12 seconds`
 
-Time taken: 37.12 seconds
+---
 
-
-## Q3: Attack All Users with a Larger Dictionary
+## Q3: Dictionary Attack with a Larger Password List
 
 ### Goal
 
-Recover passwords for every user using the larger `LeakedPWs100k` password
-list.
+Find an additional user's password using the larger `LeakedPWs100k` dictionary, excluding accounts already exposed in previous questions.
 
 ### Method
 
-Q3 keeps the same username-plus-password hashing scheme and 90,000 repeated
-hash operations, but uses the leaked 100k password list. To reduce the total
-runtime, users are processed in parallel with Python multiprocessing.
+For each candidate password and target username, the script reproduces the hashing procedure used by the lab's login checker and compares the result against the corresponding stored hash in `.loginCheck`. The original login implementation starts with `SHA-256(username + password)` and then calls `h.update(h.digest())` 90,000 times before comparing the final digest.
 
-The script checks for CUDA-enabled GPUs and reports the available GPU count.
-The current implementation still performs the password-checking function with
-Python and PyTorch is used for GPU detection; a machine without a GPU falls
-back to a CPU process pool.
+### Bonus: Multithreading
+
+The Q3 Bonus uses Python's `ThreadPoolExecutor` to search multiple target users concurrently.
+
+- Threads work on separate target users while checking candidates from `LeakedPWs100k`.
+- When a matching result is returned to the main thread, the program prints the username and password and saves the result to `results.txt`.
+- The program attempts to verify the discovered credentials using the login checker supplied with the lab.
+- The execution time is measured and printed.
+
+**Performance note:** The recorded run took more than one hour. Multithreading was implemented for the Bonus, but it does not guarantee a speedup for CPU-bound Python workloads because of the Global Interpreter Lock (GIL). The actual runtime depends on the machine, target users, and implementation. Re-run the final script and update this value if you record a new measurement.
+
+### Previously exposed credentials
+
+These results were found in the earlier questions and are excluded from the search for an additional user:
+
+| Username | Password |
+|---|---|
+| Magdy | `password` |
+| Mostafa | `1234567890` |
 
 ### Run
 
 ```powershell
 cd lab1/Lab1/Q3
-python sol.py
+python -u sol.py
 ```
 
-Expected startup messages include either `Running on GPU(s)...` or
-`Running on CPU...`, followed by the number of detected devices or CPU cores.
+### Recorded execution time
 
-### username :password
-Magdy:password
+`More than one hour`
 
-Mostafa:1234567890
-
-### Execution time
-
-excution time:more than one hour
+---
 
 ## Q4: Attack Using an Exposed Password File
 
 ### Goal
-Recover the password of an additional user by using the exposed passwords listed in `Q4/PwnedPWfile`.
+
+Find an additional user's credentials by checking passwords from `PwnedPWfile` against the lab's login hashes.
 
 ### Method
-Q4 uses the exposed password file to identify a password reused by another user.
 
-The script:
+1. Read the exposed password entries from `PwnedPWfile`.
+2. Load the target usernames and the hashes used by the lab's login checker.
+3. Test the candidate passwords using the login checker's hashing procedure.
+4. Report a matching username/password pair and verify it with the supplied login checker, where supported by the lab setup.
 
-1. Reads the exposed passwords from `PwnedPWfile`.
-2. Loads the user password hashes from `.loginCheck`.
-3. Tests the candidate passwords against the users using the hashing process implemented in `LoginTemplate.py`.
-4. Identifies the user whose password matches one of the exposed passwords.
-5. Verifies the recovered credentials using the login checker.
-
-This demonstrates the risk of password reuse when passwords are exposed in data breaches.
+This exercise demonstrates the risk of password reuse after a password has been exposed.
 
 ### Run
-```bash
+
+```powershell
 cd lab1/Lab1/Q4
 python sol.py
 ```
 
-### Results
-```text
-Username: Kamal
-Password: RizPbXsc
-```
+### Result
 
-### Execution time
+| Username | Password |
+|---|---|
+| Kamal | `RizPbXsc` |
 
-Execution Time: 0.1690 seconds
+### Recorded execution time
+
+`0.1690 seconds`
+
 ---
 
 ## Q5: Attack Using Hashed Passwords and Two Random Digits
 
 ### Goal
-Recover additional user credentials using the exposed hashed passwords in `Q5/HashedPWs`.
 
-Users are assumed to have selected a password from `Q5/LeakedPWs100k` and appended two random digits to it.
+Find credentials for an additional user using `HashedPWs`. The password is assumed to be a word from `LeakedPWs100k` followed by two random digits.
 
 ### Method
-Q5 uses the exposed hashed password file to reduce the search space and identify possible password matches.
 
-The script:
+1. Read the exposed username/hash records from `HashedPWs`.
+2. Load candidate words from `LeakedPWs100k`.
+3. Append every two-digit suffix from `00` through `99` to each candidate word.
+4. Calculate and compare candidate hashes using the format specified for `HashedPWs`.
+5. Report any matching credentials and verify the candidate with the supplied login checker when the lab's verification setup supports it.
 
-1. Reads the exposed hashes from `HashedPWs`.
-2. Loads the candidate passwords from `LeakedPWs100k`.
-3. Appends every possible two-digit combination (`00`–`99`) to each candidate password.
-4. Applies the required hashing process to the generated password candidates.
-5. Compares the calculated hashes with the target user hashes in `.loginCheck`.
-6. Reports the recovered credentials and verifies them using the login checker.
-
-Appending two random digits creates 100 possible variants for each dictionary password, increasing the search space compared with a basic dictionary attack.
+Each dictionary word has 100 possible two-digit suffixes.
 
 ### Run
-```bash
+
+```powershell
 cd lab1/Lab1/Q5
 python sol.py
 ```
 
-### Results
-```text
-Username: Andrew
-Password: 1011199065
-```
+### Result
 
-### Execution time
-Execution time: 16.9839 seconds
+| Username | Password |
+|---|---|
+| Andrew | `1011199065` |
+
+### Recorded execution time
+
+`16.9839 seconds`
 
 ---
 
 ## Q6: Attack Using Salted Password Hashes
 
 ### Goal
-Recover the passwords of additional users using the salted password hashes stored in `Q6/SaltedPWs`.
 
-Each target password is assumed to consist of a password from `Q6/LeakedPWs100k` followed by one random digit.
+Find an additional user's password from the salted records in `SaltedPWs`. The password is assumed to be a word from `LeakedPWs100k` followed by one random digit.
 
 ### Method
-Q6 uses the salt associated with each user when testing password candidates.
 
-The script:
+1. Read the username, salt, and hash fields from `SaltedPWs`.
+2. Load candidate words from `LeakedPWs100k`.
+3. Append each digit from `0` through `9` to each candidate word.
+4. Combine the user's salt with each candidate password in the order specified by the lab, then calculate the hash.
+5. Compare the calculated value with the salted hash for that user.
+6. Report the matching username/password pair.
 
-1. Reads the usernames, salts, and salted hashes from `SaltedPWs`.
-2. Loads candidate passwords from `LeakedPWs100k`.
-3. Appends each possible digit (`0`–`9`) to every candidate password.
-4. Concatenates the user's salt with each generated password candidate.
-5. Calculates the hash using the hashing algorithm specified by the lab.
-6. Compares the calculated hash with the corresponding stored salted hash.
-7. Reports the recovered credentials when a match is found.
-
-Since each user has a different salt, password candidates must be tested using the appropriate salt for each account. Salting helps prevent identical passwords from producing identical stored hashes and makes precomputed hash attacks less effective.
+Each user's salt must be used for that user's candidate checks. Salting prevents identical passwords from automatically having identical stored hashes and makes precomputed hash tables less useful.
 
 ### Run
-```bash
+
+```powershell
 cd lab1/Lab1/Q6
 python sol.py
 ```
 
-### Results
-```text
+### Result
 
-usernamee: Peter
-password: clearwater9
-```
+| Username | Password |
+|---|---|
+| Peter | `clearwater9` |
 
-### Execution time
-Execution Time: 2.3887 seconds
+### Recorded execution time
+
+`2.3887 seconds`
+
+**Verification note:** Q6's `SaltedPWs` records use a different hash format from the shared `.loginCheck` file. A match in `SaltedPWs` should therefore be checked according to Q6's specified format; it should not automatically be described as verified by the generic login checker unless that checker is configured for the same scheme.
 
 ---
 
-## Notes
-- Run each command from its corresponding question directory.
-- Ensure that the required password lists and hash files are available.
-- Use the exact hashing algorithm and input format specified by the lab.
-- Record the actual execution time and recovered credentials after running each solution.
-- These scripts are intended for the supplied lab files and an authorized educational environment only.
+## Shared Login Hashing Procedure (Q1–Q4 where applicable)
 
-## Shared Hashing Process
+The login checker initializes SHA-256 with the username followed by the candidate password, then repeatedly updates the hash object with its current digest:
 
-The login checker and these solutions use the following process:
+```python
+h = hashlib.sha256()
+h.update((username + password).encode("utf-8"))
 
-```text
-digest = SHA256(username + password)
-repeat 90,000 times:
-    digest = SHA256(digest)
-compare the final digest with .loginCheck
+for _ in range(90000):
+    h.update(h.digest())
+
+final_digest = h.hexdigest()
 ```
 
-The repeated hashing increases the work required for each password guess. The
-password lists demonstrate why common and leaked passwords remain vulnerable
-when users choose weak passwords, even when key stretching is used.
+The final digest is compared with the value stored in `.loginCheck`. This describes the lab's specific implementation; it is not equivalent to simply computing `SHA256(SHA256(...))` 90,000 times.
+
+Q5 and Q6 use the formats in their own exposed hash files and should be implemented according to each question's specification.
+
+---
 
 ## Files Used
 
-| Question | Solution | Password list | Users |
-| --- | --- | --- | --- |
-| Q1 | `Q1/sol.py` | `Q1/MostCommonPWs` | `Q1/users` |
-| Q2 | `Q2/sol.py` | `Q2/MostCommonPWs` | `Q2/users` |
-| Q3 | `Q3/sol.py` | `Q3/LeakedPWs100k` | `Q3/users` |
-| Q4 | `Q4/sol.py` | `Q4/PwnedPWfile` | `.loginCheck` |
-| Q5 | `Q5/sol.py` | `Q5/LeakedPWs100k` | `.loginCheck`, `Q5/HashedPWs` |
-| Q6 | `Q6/sol.py` | `Q6/LeakedPWs100k` | `Q6/SaltedPWs` |
+| Question | Solution | Password list / exposed file | Other inputs |
+|---|---|---|---|
+| Q1 | `Q1/sol.py` | `Q1/MostCommonPWs` | `.loginCheck` |
+| Q2 | `Q2/sol.py` | `Q2/MostCommonPWs` | `.loginCheck` |
+| Q3 | `Q3/sol.py` | `Q3/LeakedPWs100k` | `Q3/users`, `.loginCheck` |
+| Q4 | `Q4/sol.py` | `Q4/PwnedPWfile` | `Q4/users`, `.loginCheck` |
+| Q5 | `Q5/sol.py` | `Q5/LeakedPWs100k`, `Q5/HashedPWs` | `Q5/users`, `.loginCheck` for login verification |
+| Q6 | `Q6/sol.py` | `Q6/LeakedPWs100k`, `Q6/SaltedPWs` | `Q6/users` |
 
-These scripts are intended for the supplied lab files and an authorized
-educational environment only.
+## Notes
+
+- Run each solution from its corresponding question directory.
+- Check that each question's required input files are present before running the script.
+- Execution times above are recorded results from the described runs; timing can vary by hardware and implementation.
+- Only report credentials as login-verified if the supplied login checker actually confirms them.
+- Use these scripts only with the supplied lab files in an authorized educational environment.
