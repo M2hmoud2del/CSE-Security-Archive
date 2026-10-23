@@ -78,6 +78,8 @@ Magdy:password
 
 Mostafa:1234567890
 
+### Execution time
+
 Time taken: 37.12 seconds
 
 
@@ -108,6 +110,16 @@ python sol.py
 
 Expected startup messages include either `Running on GPU(s)...` or
 `Running on CPU...`, followed by the number of detected devices or CPU cores.
+
+### username :password
+Magdy:password
+
+Mostafa:1234567890
+
+### Execution time
+
+excution time:more than one hour
+
 
 ## Shared Hashing Process
 
