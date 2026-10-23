@@ -18,16 +18,16 @@ passwords = open("./MostCommonPWs", "r")
 passwordsList = passwords.read().splitlines()
 
 passwords.close()
-
+# print(passwordsList)
 for user in users:
-    if user == "Magdy":
-        continue
 
     for password in passwordsList:
         hash=hashlib.sha256()
-        hash.update(bytes(user+password,'utf-8'))
+        hash.update(bytes(user+password,'utf-8')  )  # for defenses against dictionary attack on the usersHashedPWs file
         for i in range(90000): 
-            hash.update(hash.digest())
+            
+            hash.update(hash.digest())   # prepend name and iterate
+            
             guess=hash.hexdigest()
 
             if (guess) == hashed[user]:
@@ -36,3 +36,4 @@ for user in users:
                 break
 
 print(f"Time taken: {time.perf_counter() - start_time:.2f} seconds")
+
