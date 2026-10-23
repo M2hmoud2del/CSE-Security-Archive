@@ -45,8 +45,11 @@ python sol.py
 When the password is found, the script prints the username and password and
 calls the login checker.
 
+### username :password
+Magdy:password
+
 ### Execution time
-Execution time: 10.57 seconds
+Execution time: 3.72 seconds
 
 ## Q2: Attack All Users
 
@@ -70,8 +73,11 @@ python sol.py
 This approach is more expensive than Q1 because it repeats the dictionary
 attack for all accounts.
 
+### username :password
+Mostafa:1234567890
+
 ### Execution time
-Execution time: 134.63 seconds
+Execution time: 34.28 seconds
 
 ## Q3: Attack All Users with a Larger Dictionary
 
