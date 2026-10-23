@@ -146,13 +146,13 @@ python sol.py
 
 ### Results
 ```text
-username :password
-[Add the recovered username and password]
+Username: Kamal
+Password: RizPbXsc
 ```
 
 ### Execution time
-Execution time: [Add measured execution time]
 
+Execution Time: 0.1690 seconds
 ---
 
 ## Q5: Attack Using Hashed Passwords and Two Random Digits
@@ -184,12 +184,12 @@ python sol.py
 
 ### Results
 ```text
-username :password
-[Add the recovered username and password]
+Username: Andrew
+Password: 1011199065
 ```
 
 ### Execution time
-Execution time: [Add measured execution time]
+Execution time: 16.9839 seconds
 
 ---
 
@@ -223,12 +223,13 @@ python sol.py
 
 ### Results
 ```text
-username :password
-[Add the recovered username and password]
+
+usernamee: Peter
+password: clearwater9
 ```
 
 ### Execution time
-Execution time: [Add measured execution time]
+Execution Time: 2.3887 seconds
 
 ---
 
