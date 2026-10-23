@@ -29,11 +29,9 @@ def verify_login(username, password, login_hashes):
 def main():
     start_time = time.perf_counter()
 
-    # Read target users
     with open(USERS_FILE, "r", encoding="utf-8") as f:
         users = [line.strip() for line in f if line.strip()]
 
-    # Read login hashes
     login_hashes = {}
 
     with open(LOGIN_FILE, "r", encoding="utf-8") as f:
@@ -43,7 +41,6 @@ def main():
             if len(parts) == 2:
                 login_hashes[parts[0]] = parts[1]
 
-    # Read exposed username/password pairs
     leaked_entries = []
 
     with open(PWNED_FILE, "r", encoding="utf-8", newline="") as f:
@@ -58,7 +55,6 @@ def main():
     found = None
     attempts = set()
 
-    # Phase 1: Try passwords associated with matching usernames first.
     users_by_lower = {user.lower(): user for user in users}
 
     for leaked_user, password in leaked_entries:
@@ -73,7 +69,6 @@ def main():
             found = (username, password)
             break
 
-    # Phase 2: If needed, test all leaked passwords against target users.
     if found is None:
         passwords = list(dict.fromkeys(
             password for _, password in leaked_entries
