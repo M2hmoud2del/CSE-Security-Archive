@@ -74,10 +74,10 @@ This approach is more expensive than Q1 because it repeats the dictionary
 attack for all accounts.
 
 ### username :password
+Magdy:password
 Mostafa:1234567890
+Time taken: 37.12 seconds
 
-### Execution time
-Execution time: 34.28 seconds
 
 ## Q3: Attack All Users with a Larger Dictionary
 
