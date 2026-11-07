@@ -226,7 +226,7 @@ python sol.py
 
 | Username | Password |
 |---|---|
-| Peter | `clearwater9` |
+| Bridgit | `bumble9` |
 
 ### Recorded execution time
 
