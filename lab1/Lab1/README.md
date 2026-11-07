@@ -1,5 +1,9 @@
 # Lab 1: Password Cracking Solutions
 
+solved by :
+1-Mahmoud adel 
+2-Yousef Mohamed Mehrez
+
 This repository contains Python solutions for Questions 1–6 of Lab 1. The exercises demonstrate dictionary attacks, password reuse, exposed password hashes, salting, and the effect of repeated hashing on password-guessing cost. The Q3 solution also implements the Bonus using multithreading.
 
 > **Scope:** These scripts are intended only for the supplied lab files and an authorized educational environment.
