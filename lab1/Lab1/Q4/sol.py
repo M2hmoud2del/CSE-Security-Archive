@@ -1,3 +1,4 @@
+
 import hashlib
 import csv
 import os
@@ -12,9 +13,7 @@ OUTPUT_FILE = os.path.join(BASE_DIR, "results.txt")
 
 
 def verify_login(username, password, login_hashes):
-    stored_hash = login_hashes.get(username)
-
-    if stored_hash is None:
+    if username not in login_hashes:
         return False
 
     h = hashlib.sha256()
@@ -23,7 +22,7 @@ def verify_login(username, password, login_hashes):
     for _ in range(90000):
         h.update(h.digest())
 
-    return h.hexdigest() == stored_hash
+    return h.hexdigest() == login_hashes[username]
 
 
 def main():
@@ -35,29 +34,31 @@ def main():
     login_hashes = {}
 
     with open(LOGIN_FILE, "r", encoding="utf-8") as f:
-        for line in f:
-            parts = line.strip().split(",", 1)
-
-            if len(parts) == 2:
-                login_hashes[parts[0]] = parts[1]
+        for row in csv.reader(f):
+            if len(row) == 2:
+                login_hashes[row[0].strip()] = row[1].strip()
 
     leaked_entries = []
 
     with open(PWNED_FILE, "r", encoding="utf-8", newline="") as f:
         for row in csv.reader(f):
             if len(row) >= 2:
-                leaked_user = row[0].strip()
+                username = row[0].strip()
                 password = row[1].strip()
 
                 if password:
-                    leaked_entries.append((leaked_user, password))
+                    leaked_entries.append((username, password))
 
     found = None
     attempts = set()
 
-    users_by_lower = {user.lower(): user for user in users}
+    users_by_lower = {
+        user.lower(): user for user in users
+    }
 
+    # First, check passwords against their leaked usernames.
     for leaked_user, password in leaked_entries:
+
         username = users_by_lower.get(leaked_user.lower())
 
         if username is None:
@@ -69,13 +70,17 @@ def main():
             found = (username, password)
             break
 
+    # If no match was found, check the leaked passwords against all users.
     if found is None:
+
         passwords = list(dict.fromkeys(
             password for _, password in leaked_entries
         ))
 
         for password in passwords:
+
             for username in users:
+
                 if (username, password) in attempts:
                     continue
 
@@ -90,17 +95,19 @@ def main():
 
     print("\n--- Q4 Results ---")
 
-    if found:
+    if found is not None:
+
         username, password = found
 
-        print(f"Username: {username}")
-        print(f"Password: {password}")
+        print("Username:", username)
+        print("Password:", password)
         print("Verification: SUCCESS")
 
         with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
             f.write(f"{username},{password}\n")
 
-        print(f"Results saved to: {OUTPUT_FILE}")
+        print("Results saved to:", OUTPUT_FILE)
+
     else:
         print("No matching credentials found.")
 
