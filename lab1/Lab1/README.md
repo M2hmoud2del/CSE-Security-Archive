@@ -230,28 +230,14 @@ python sol.py
 
 | Username | Password |
 |---|---|
-| Bridgit | `bumble9` |
+| Peter | `clearwater9` |
 
 ### Recorded execution time
 
-`2.3887 seconds`
+`1.371400 seconds`
 
 **Verification note:** Q6's `SaltedPWs` records use a different hash format from the shared `.loginCheck` file. A match in `SaltedPWs` should therefore be checked according to Q6's specified format; it should not automatically be described as verified by the generic login checker unless that checker is configured for the same scheme.
 
-### Q6 – Additional Login Verification
-
-After successfully recovering the additional user's password using `SaltedPWs` and `LeakedPWs100k`, I created a separate login verification script for Q6.
-
-The original `Login.pyc` uses the `.loginCheck` file, which contains only the original users and does not include the additional users recovered in Q6.
-
-To solve this, I implemented a separate login script that:
-- Accepts a username and password.
-- Retrieves the corresponding salt and stored hash from `SaltedPWs`.
-- Calculates `SHA256(salt + password)`.
-- Compares the calculated hash with the stored hash.
-- Displays whether the login was successful or failed.
-
-This allows the recovered Q6 credentials to be verified using the same hashing method specified in the assignment, without modifying the original login files.
 ---
 
 ## Shared Login Hashing Procedure (Q1–Q4 where applicable)
